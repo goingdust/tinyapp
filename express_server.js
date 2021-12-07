@@ -48,15 +48,18 @@ app.get('/u/:shortURL', (req, res) => {
   res.redirect(longURL);
 });
 
+app.post('/urls/:shortURL', (req, res) => {
+  for (const key in req.body) {
+    urlDatabase[key] = req.body[key];
+    res.redirect(`/urls/${key}`);
+  }
+});
+
 app.post('/urls/:shortURL/delete', (req, res) => {
-  for (key in req.body) {
+  for (const key in req.body) {
     delete urlDatabase[key];
   }
   res.redirect('/urls');
-});
-
-app.get('/hello', (req, res) => {
-  res.send('<html><body>Hello <b>World</b></body></html>\n');
 });
 
 app.listen(PORT, () => {
