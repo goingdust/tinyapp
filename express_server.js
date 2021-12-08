@@ -28,7 +28,7 @@ const users = {
   }
 };
 
-const findUserByEmailAndUsername = (email, username) => {
+const findUserByEmailAndUsername = (username, email) => {
   for (const userID in users) {
     const user = users[userID];
     if (username === user.id) {
@@ -46,6 +46,15 @@ app.get('/', (req, res) => {
 
 app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
+});
+
+app.get('/login', (req, res) => {
+  const username = req.cookies['username'];
+  const templateVars = {
+    urls: urlDatabase,
+    username: users[username]
+  };
+  res.render('urls_login', templateVars);
 });
 
 app.post('/login', (req, res) => {
@@ -77,7 +86,7 @@ app.post('/register', (req, res) => {
     return res.status(400).send('the fields cannot be blank');
   }
 
-  const user = findUserByEmailAndUsername(email, username);
+  const user = findUserByEmailAndUsername(username, email);
 
   if (user === 'username') {
     return res.status(400).send('a user with that username already exists');
