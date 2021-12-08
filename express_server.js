@@ -17,24 +17,24 @@ const urlDatabase = {
 
 const users = {
   'stevie': {
-    id: 'stevie',
+    username: 'stevie',
     email: 'steven@universe.com',
     password: '123'
   },
   'pearly': {
-    id: 'pearly',
+    username: 'pearly',
     email: 'pearl@gems.com',
     password: 'abc'
   }
 };
 
-const findUserByEmailAndUsername = (username, email) => {
+const findUserByEmailAndUsername = (email, username) => {
   for (const userID in users) {
     const user = users[userID];
-    if (username === user.id) {
-      return 'username';
-    } else if (email === user.email) {
-      return 'email';
+    if (email === user.email) {
+      return [user, 'email'];
+    } else if (username === user.username) {
+      return [user, 'username'];
     }
   }
   return null;
@@ -58,8 +58,22 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  const username = req.body['username'];
-  // res.cookie('username', username);
+  const email = req.body.email;
+  const password = req.body.password;
+
+  if (!email || !password) {
+    return res.status(400).send('the fields cannot be blank');
+  }
+
+  const user = findUserByEmailAndUsername(email);
+
+  if (!user) {
+    return res.status(403).send('a user with that email does not exist');
+  } else if (password !== user[0].password) {
+    return res.status(403).send('password does not match the password saved');
+  } 
+    
+  res.cookie('username', user[0].username);
   res.redirect('/urls');
 });
 
@@ -86,18 +100,18 @@ app.post('/register', (req, res) => {
     return res.status(400).send('the fields cannot be blank');
   }
 
-  const user = findUserByEmailAndUsername(username, email);
+  const user = findUserByEmailAndUsername(email, username);
 
-  if (user === 'username') {
+  if (user && user[1] === 'username') {
     return res.status(400).send('a user with that username already exists');
-  } else if (user === 'email') {
+  } else if (user && user[1] === 'email') {
     return res.status(400).send('a user with that email already exists');
   }
 
   users[username] = {
-    username: username,
-    email: email,
-    password: password
+    username,
+    email,
+    password
   };
 
   res.cookie('username', users[username].username);
