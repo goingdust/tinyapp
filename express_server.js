@@ -11,8 +11,14 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  'b2xVn2': {
+    longURL: 'http://www.lighthouselabs.ca',
+    userID: 'b2xVn2'
+  },
+  '9sm5xK': {
+    longURL: 'http://www.google.com',
+    userID: '9sm5xK'
+  }
 };
 
 const users = {
@@ -49,7 +55,12 @@ app.get('/urls.json', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-  const username = req.cookies['username'];
+  const username = req.cookies.username;
+  
+  if (username) {
+    return res.redirect('/urls');
+  }
+  
   const templateVars = {
     urls: urlDatabase,
     username: users[username]
@@ -84,6 +95,11 @@ app.post('/logout', (req, res) => {
 
 app.get('/register', (req, res) => {
   const username = req.cookies['username'];
+  
+  if (username) {
+    return res.redirect('/urls');
+  }
+
   const templateVars = {
     urls: urlDatabase,
     username: users[username]
@@ -115,13 +131,11 @@ app.post('/register', (req, res) => {
   };
 
   res.cookie('username', users[username].username);
-
-  console.log('users', users);
   res.redirect('/urls');
 });
 
 app.get('/urls', (req, res) => {
-  const username = req.cookies['username'];
+  const username = req.cookies.username;
   const templateVars = {
     urls: urlDatabase,
     username: users[username]
@@ -130,13 +144,24 @@ app.get('/urls', (req, res) => {
 });
 
 app.post('/urls', (req, res) => {
+  const username = req.cookies.username;
+
+  if (!username) {
+    return res.status(401).send('not logged in');
+  }
+
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`/urls/${shortURL}`);
 });
 
 app.get('/urls/new', (req, res) => {
-  const username = req.cookies['username'];
+  const username = req.cookies.username;
+  
+  if (!username) {
+    return res.redirect('/login');
+  }
+  
   const templateVars = {
     urls: urlDatabase,
     username: users[username]
