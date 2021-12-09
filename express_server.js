@@ -208,14 +208,16 @@ app.get('/urls/:shortURL', (req, res) => {
 
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
-  const username = req.cookies.username;
   
-  if (!users[username].urls[shortURL]) {
-    return res.status(404).send('page does not exist');
+  for (const user in users) {
+    for (const url in users[user].urls) {
+      if (shortURL === url) {
+        const longURL = users[user].urls[shortURL].longURL;
+        return res.redirect(longURL);
+      }
+    }
   }
-
-  const longURL = users[username].urls[shortURL].longURL;
-  res.redirect(longURL);
+  return res.status(404).send('page not found');
 });
 
 app.post('/urls/:shortURL', (req, res) => {
