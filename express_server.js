@@ -190,12 +190,11 @@ app.get('/urls/new', (req, res) => {
 
 app.get('/urls/:shortURL', (req, res) => {
   const username = req.cookies.username;
-
-  if (!username) {
-    return res.status(404).send('page not found - please login');
-  }
-
   const shortURL = req.params.shortURL;
+
+  if (!username || !shortURL) {
+    return res.status(404).send('page not found');
+  }
 
   for (const key in users[username].urls) {
     if (!urlsForUser(shortURL, username)) {
@@ -225,6 +224,10 @@ app.get('/u/:shortURL', (req, res) => {
 
 app.post('/urls/:shortURL', (req, res) => {
   const username = req.cookies.username;
+
+  if (!username) {
+    return res.status(401).send('unauthorized');
+  }
   
   for (const key in req.body) {
     if (!urlsForUser(key, username)) {
@@ -238,6 +241,10 @@ app.post('/urls/:shortURL', (req, res) => {
 app.post('/urls/:shortURL/delete', (req, res) => {
   const username = req.cookies.username;
   
+  if (!username) {
+    return res.status(401).send('unauthorized');
+  }
+
   for (const key in req.body) {
     if (!urlsForUser(key, username)) {
       return res.status(401).send('unauthorized');
