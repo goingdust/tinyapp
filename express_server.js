@@ -50,10 +50,16 @@ const findUserByEmailAndUsername = (email, username) => {
 
 const urlsForUser = (id, username) => {
   if (!username) {
-    return;
+    for (const user in users) {
+      for (const url in users[user].urls) {
+        if (id === url) {
+          return [user, id];
+        }
+      }
+    }
   } else {
-    for (const key in users[username].urls) {
-      if (users[username].urls[key].username === id) {
+    for (const url in users[username].urls) {
+      if (id === url) {
         return id;
       }
     }
@@ -194,10 +200,8 @@ app.get('/urls/:shortURL', (req, res) => {
     return res.status(404).send('page not found');
   }
 
-  for (const key in users[username].urls) {
-    if (!urlsForUser(shortURL, username)) {
-      return res.status(401).send('page not found');
-    }
+  if (!urlsForUser(shortURL, username)) {
+    return res.status(401).send('page not found');
   }
 
   const templateVars = {
@@ -228,7 +232,7 @@ app.post('/urls/:shortURL', (req, res) => {
   if (!username) {
     return res.status(401).send('unauthorized');
   }
-  
+
   for (const key in req.body) {
     if (!urlsForUser(key, username)) {
       return res.status(401).send('unauthorized');
