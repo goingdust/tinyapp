@@ -68,6 +68,7 @@ const urlsForUser = (id, username) => {
       }
     }
   }
+  return null;
 };
 
 app.get('/', (req, res) => {
@@ -152,7 +153,7 @@ app.post('/register', (req, res) => {
     username,
     email,
     password,
-    shortURLs: []
+    urls: {}
   };
 
   res.cookie('username', users[username].username);
@@ -225,7 +226,7 @@ app.get('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
 
   for (const key in users[username].urls) {
-    if (shortURL !== users[username].urls[key].username) {
+    if (!urlsForUser(shortURL, username)) {
       return res.status(401).send('page not found');
     }
   }
