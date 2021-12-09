@@ -39,9 +39,9 @@ const users = {
   }
 };
 
-const findUserByEmailAndUsername = (email, username) => {
-  for (const userID in users) {
-    const user = users[userID];
+const findUserByEmailAndUsername = (database, email, username) => {
+  for (const userID in database) {
+    const user = database[userID];
     if (email === user.email) {
       return [user, 'email'];
     } else if (username === user.username) {
@@ -95,7 +95,7 @@ app.post('/login', (req, res) => {
     return res.status(400).send('the fields cannot be blank');
   }
 
-  const user = findUserByEmailAndUsername(email);
+  const user = findUserByEmailAndUsername(users, email);
 
   if (!user) {
     return res.status(403).send('a user with that email does not exist');
@@ -135,7 +135,7 @@ app.post('/register', (req, res) => {
     return res.status(400).send('the fields cannot be blank');
   }
 
-  const user = findUserByEmailAndUsername(email, username);
+  const user = findUserByEmailAndUsername(users, email, username);
 
   if (user && user[1] === 'username') {
     return res.status(400).send('a user with that username already exists');
