@@ -258,9 +258,15 @@ app.post('/urls/:shortURL', (req, res) => {
 });
 
 app.post('/urls/:shortURL/delete', (req, res) => {
+  const username = req.cookies.username;
+  
   for (const key in req.body) {
+    if (!urlsForUser(key, username)) {
+      return res.status(401).send('unauthorized');
+    }
     delete urlDatabase[key];
   }
+
   res.redirect('/urls');
 });
 
