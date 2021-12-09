@@ -25,12 +25,24 @@ const users = {
   'stevie': {
     username: 'stevie',
     email: 'steven@universe.com',
-    password: '123'
+    password: '123',
+    urls: {
+      'b2xVn2' : {
+        longURL: 'http://www.lighthouselabs.ca',
+        username: 'b2xVn2'
+      }
+    }
   },
   'pearly': {
     username: 'pearly',
     email: 'pearl@gems.com',
-    password: 'abc'
+    password: 'abc',
+    urls: {
+      '9sm5xK': {
+        longURL: 'http://www.google.com',
+        username: '9sm5xK'
+      }
+    }
   }
 };
 
@@ -44,6 +56,18 @@ const findUserByEmailAndUsername = (email, username) => {
     }
   }
   return null;
+};
+
+const urlsForUser = (id, username) => {
+  if (!username) {
+    return;
+  } else {
+    for (const key in users[username].urls) {
+      if (users[username].urls[key].username === id) {
+        return id;
+      }
+    }
+  }
 };
 
 app.get('/', (req, res) => {
@@ -127,7 +151,8 @@ app.post('/register', (req, res) => {
   users[username] = {
     username,
     email,
-    password
+    password,
+    shortURLs: []
   };
 
   res.cookie('username', users[username].username);
@@ -136,8 +161,18 @@ app.post('/register', (req, res) => {
 
 app.get('/urls', (req, res) => {
   const username = req.cookies.username;
+  
+  for (const url in urlDatabase) {
+    if (urlsForUser(url, username) !== url) {
+      delete urlDatabase[url];
+    }
+  }
+  
+  console.log('users', users);
+  console.log('urls', urlDatabase);
   const templateVars = {
     urls: urlDatabase,
+    users,
     username: users[username]
   };
   res.render('urls_index', templateVars);
@@ -152,10 +187,16 @@ app.post('/urls', (req, res) => {
 
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
+  
   urlDatabase[shortURL] = {
     longURL,
     username: shortURL
-  }
+  };
+
+  users[username].urls[shortURL] = {
+    longURL,
+    username: shortURL
+  };
 
   res.redirect(`/urls/${shortURL}`);
 });
@@ -175,8 +216,20 @@ app.get('/urls/new', (req, res) => {
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  const shortURL = req.params.shortURL;
   const username = req.cookies.username;
+
+  if (!username) {
+    return res.status(404).send('page not found - please login');
+  }
+
+  const shortURL = req.params.shortURL;
+
+  for (const key in users[username].urls) {
+    if (shortURL !== users[username].urls[key].username) {
+      return res.status(401).send('page not found');
+    }
+  }
+
   const templateVars = {
     shortURL,
     longURL: urlDatabase[shortURL].longURL,
