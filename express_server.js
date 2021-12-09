@@ -196,12 +196,8 @@ app.get('/urls/:shortURL', (req, res) => {
   const username = req.cookies.username;
   const shortURL = req.params.shortURL;
 
-  if (!username || !shortURL) {
+  if (!username || !shortURL || !urlsForUser(shortURL, username)) {
     return res.status(404).send('page not found');
-  }
-
-  if (!urlsForUser(shortURL, username)) {
-    return res.status(401).send('page not found');
   }
 
   const templateVars = {
@@ -215,14 +211,12 @@ app.get('/urls/:shortURL', (req, res) => {
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   
-  for (const user in users) {
-    for (const url in users[user].urls) {
-      if (shortURL === url) {
-        const longURL = users[user].urls[shortURL].longURL;
-        return res.redirect(longURL);
-      }
-    }
+  if (urlsForUser(shortURL)) {
+    const user = urlsForUser(shortURL)[0];
+    const longURL = users[user].urls[shortURL].longURL;
+    return res.redirect(longURL);
   }
+
   return res.status(404).send('page not found');
 });
 
