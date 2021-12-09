@@ -141,17 +141,20 @@ app.get('/urls', (req, res) => {
 
 app.post('/urls', (req, res) => {
   const username = req.session.username;
+  const date = new Date(Date.now()).toUTCString();
 
   if (!username) {
     return res.status(401).send('not logged in');
   }
+  console.log(req._startTime);
 
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
 
   users[username].urls[shortURL] = {
     longURL,
-    username: shortURL
+    username: shortURL,
+    date
   };
 
   res.redirect(`/urls/${shortURL}`);
@@ -181,7 +184,7 @@ app.get('/urls/:shortURL', (req, res) => {
   const templateVars = {
     shortURL,
     longURL: users[username].urls[shortURL].longURL,
-    username: users[username]
+    username: users[username],
   };
   res.render('urls_show', templateVars);
 });
