@@ -4,6 +4,7 @@ const PORT = 8080;
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcryptjs');
 
 app.use(cookieParser());
 app.use(morgan('dev'));
@@ -14,7 +15,7 @@ const users = {
   'stevie': {
     username: 'stevie',
     email: 'steven@universe.com',
-    password: '123',
+    password: bcrypt.hashSync('123', 10),
     urls: {
       'b2xVn2' : {
         longURL: 'http://www.lighthouselabs.ca',
@@ -25,7 +26,7 @@ const users = {
   'pearly': {
     username: 'pearly',
     email: 'pearl@gems.com',
-    password: 'abc',
+    password: bcrypt.hashSync('abc', 10),
     urls: {
       '9sm5xK': {
         longURL: 'http://www.google.com',
@@ -89,7 +90,7 @@ app.post('/login', (req, res) => {
 
   if (!user) {
     return res.status(403).send('a user with that email does not exist');
-  } else if (password !== user[0].password) {
+  } else if (!bcrypt.compareSync(password, user[0].password)) {
     return res.status(403).send('password does not match the password saved');
   } 
     
@@ -119,6 +120,7 @@ app.post('/register', (req, res) => {
   const username = req.body.username;
   const email = req.body.email;
   const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
 
   if (!username || !email || !password) {
     return res.status(400).send('the fields cannot be blank');
@@ -135,7 +137,7 @@ app.post('/register', (req, res) => {
   users[username] = {
     username,
     email,
-    password,
+    password: hashedPassword,
     urls: {}
   };
 
