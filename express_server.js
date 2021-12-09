@@ -10,17 +10,6 @@ app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
 
-const urlDatabase = {
-  'b2xVn2': {
-    longURL: 'http://www.lighthouselabs.ca',
-    username: 'b2xVn2'
-  },
-  '9sm5xK': {
-    longURL: 'http://www.google.com',
-    username: '9sm5xK'
-  }
-};
-
 const users = {
   'stevie': {
     username: 'stevie',
@@ -87,7 +76,6 @@ app.get('/login', (req, res) => {
   }
   
   const templateVars = {
-    urls: urlDatabase,
     username: users[username]
   };
   res.render('urls_login', templateVars);
@@ -126,7 +114,6 @@ app.get('/register', (req, res) => {
   }
 
   const templateVars = {
-    urls: urlDatabase,
     username: users[username]
   };
   res.render('urls_register', templateVars);
@@ -163,17 +150,8 @@ app.post('/register', (req, res) => {
 app.get('/urls', (req, res) => {
   const username = req.cookies.username;
   
-  for (const url in urlDatabase) {
-    if (urlsForUser(url, username) !== url) {
-      delete urlDatabase[url];
-    }
-  }
-  
   console.log('users', users);
-  console.log('urls', urlDatabase);
   const templateVars = {
-    urls: urlDatabase,
-    users,
     username: users[username]
   };
   res.render('urls_index', templateVars);
@@ -188,11 +166,6 @@ app.post('/urls', (req, res) => {
 
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
-  
-  urlDatabase[shortURL] = {
-    longURL,
-    username: shortURL
-  };
 
   users[username].urls[shortURL] = {
     longURL,
@@ -210,7 +183,6 @@ app.get('/urls/new', (req, res) => {
   }
   
   const templateVars = {
-    urls: urlDatabase,
     username: users[username]
   };
   res.render('urls_new', templateVars);
@@ -233,7 +205,7 @@ app.get('/urls/:shortURL', (req, res) => {
 
   const templateVars = {
     shortURL,
-    longURL: urlDatabase[shortURL].longURL,
+    longURL: users[username].urls[shortURL].longURL,
     username: users[username]
   };
   res.render('urls_show', templateVars);
@@ -241,18 +213,24 @@ app.get('/urls/:shortURL', (req, res) => {
 
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
+  const username = req.cookies.username;
   
-  if (!urlDatabase[shortURL]) {
+  if (!users[username].urls[shortURL]) {
     return res.status(404).send('page does not exist');
   }
 
-  const longURL = urlDatabase[shortURL].longURL;
+  const longURL = users[username].urls[shortURL].longURL;
   res.redirect(longURL);
 });
 
 app.post('/urls/:shortURL', (req, res) => {
+  const username = req.cookies.username;
+  
   for (const key in req.body) {
-    urlDatabase[key].longURL = req.body[key];
+    if (!urlsForUser(key, username)) {
+      return res.status(401).send('unauthorized');
+    }
+    users[username].urls[key].longURL = req.body[key];
     res.redirect(`/urls/${key}`);
   }
 });
@@ -264,7 +242,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
     if (!urlsForUser(key, username)) {
       return res.status(401).send('unauthorized');
     }
-    delete urlDatabase[key];
+    delete users[username].urls[key];
   }
 
   res.redirect('/urls');
