@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
+const { findUserByEmailAndUsername } = require('./helpers');
 
 app.set('view engine', 'ejs');
 app.use(morgan('dev'));
@@ -37,18 +38,6 @@ const users = {
       }
     }
   }
-};
-
-const findUserByEmailAndUsername = (database, email, username) => {
-  for (const userID in database) {
-    const user = database[userID];
-    if (email === user.email) {
-      return [user, 'email'];
-    } else if (username === user.username) {
-      return [user, 'username'];
-    }
-  }
-  return null;
 };
 
 const urlsForUser = (id, username) => {
