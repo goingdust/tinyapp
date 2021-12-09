@@ -10,6 +10,37 @@ const findUserByEmailAndUsername = (database, email, username) => {
   return null;
 };
 
+const urlsForUser = (database, id, username) => {
+  if (!username) {
+    for (const user in database) {
+      for (const url in database[user].urls) {
+        if (id === url) {
+          return [user, id];
+        }
+      }
+    }
+  } else {
+    for (const url in database[username].urls) {
+      if (id === url) {
+        return id;
+      }
+    }
+  }
+  return null;
+};
+
+const generateRandomString = function(length=6) {
+  let result = '';
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+};
+
 module.exports = {
-  findUserByEmailAndUsername
+  findUserByEmailAndUsername,
+  urlsForUser,
+  generateRandomString
 };

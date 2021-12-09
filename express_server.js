@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
-const { findUserByEmailAndUsername } = require('./helpers');
+const { findUserByEmailAndUsername, urlsForUser, generateRandomString } = require('./helpers');
 
 app.set('view engine', 'ejs');
 app.use(morgan('dev'));
@@ -40,26 +40,12 @@ const users = {
   }
 };
 
-const urlsForUser = (id, username) => {
-  if (!username) {
-    for (const user in users) {
-      for (const url in users[user].urls) {
-        if (id === url) {
-          return [user, id];
-        }
-      }
-    }
-  } else {
-    for (const url in users[username].urls) {
-      if (id === url) {
-        return id;
-      }
-    }
-  }
-  return null;
-};
-
 app.get('/', (req, res) => {
+  const username = req.session.username;
+  
+  if (!username) {
+    return res.redirect('/login');
+  } 
   res.redirect('/urls');
 });
 
@@ -87,9 +73,9 @@ app.post('/login', (req, res) => {
   const user = findUserByEmailAndUsername(users, email);
 
   if (!user) {
-    return res.status(403).send('a user with that email does not exist');
+    return res.status(400).send('a user with that email does not exist');
   } else if (!bcrypt.compareSync(password, user[0].password)) {
-    return res.status(403).send('password does not match the password saved');
+    return res.status(400).send('password does not match the password saved');
   } 
     
   req.session.username = user[0].username;
@@ -188,7 +174,7 @@ app.get('/urls/:shortURL', (req, res) => {
   const username = req.session.username;
   const shortURL = req.params.shortURL;
 
-  if (!username || !shortURL || !urlsForUser(shortURL, username)) {
+  if (!username || !shortURL || !urlsForUser(users, shortURL, username)) {
     return res.status(404).send('page not found');
   }
 
@@ -203,8 +189,8 @@ app.get('/urls/:shortURL', (req, res) => {
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   
-  if (urlsForUser(shortURL)) {
-    const user = urlsForUser(shortURL)[0];
+  if (urlsForUser(users, shortURL)) {
+    const user = urlsForUser(users, shortURL)[0];
     const longURL = users[user].urls[shortURL].longURL;
     return res.redirect(longURL);
   }
@@ -220,7 +206,7 @@ app.post('/urls/:shortURL', (req, res) => {
   }
 
   for (const key in req.body) {
-    if (!urlsForUser(key, username)) {
+    if (!urlsForUser(users, key, username)) {
       return res.status(401).send('unauthorized');
     }
     users[username].urls[key].longURL = req.body[key];
@@ -236,7 +222,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   }
 
   for (const key in req.body) {
-    if (!urlsForUser(key, username)) {
+    if (!urlsForUser(users, key, username)) {
       return res.status(401).send('unauthorized');
     }
     delete users[username].urls[key];
@@ -248,13 +234,3 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-const generateRandomString = function(length=6) {
-  let result = '';
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return result;
-};
