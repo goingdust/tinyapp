@@ -4,8 +4,8 @@ const { findUserByEmailAndUsername } = require('../helpers.js');
 
 const testUsers = {
   "userRandomID": {
-    username: "userRandomID", 
-    email: "user@example.com", 
+    username: "userRandomID",
+    email: "user@example.com",
     password: "purple-monkey-dinosaur",
     urls: {
       '9sm5xK': {
@@ -15,8 +15,8 @@ const testUsers = {
     }
   },
   "user2RandomID": {
-    username: "user2RandomID", 
-    email: "user2@example.com", 
+    username: "user2RandomID",
+    email: "user2@example.com",
     password: "dishwasher-funk",
     urls: {
       'j3h2lf': {
@@ -27,13 +27,13 @@ const testUsers = {
   }
 };
 
-describe ('getUserByEmailAndUsername', () => {
-  it ('should return a user with valid email', () => {
+describe('getUserByEmailAndUsername', () => {
+  it('should return a user with valid email', () => {
     const user = findUserByEmailAndUsername(testUsers, "user@example.com");
     const expectedUserID = "userRandomID";
     assert.equal(user[0].username, expectedUserID);
   });
-  it ('should return null if the email is non-existent', () => {
+  it('should return null if the email is non-existent', () => {
     const user = findUserByEmailAndUsername(testUsers, "pineapple@mail.com");
     assert.isNull(user);
   });

@@ -31,7 +31,7 @@
             <tr>
               <td><%= url %></td>
               <td><%= username.urls[url].longURL %></td>
-              <td><%= username.urls[url].date %></td>
+              <td><%= username.urls[url].dateCreated %></td>
               <td>
                 <form method="GET" action="/urls/<%= url %>">
                   <button type="submit" name="edit" class="btn btn-outline-primary">Edit</button>

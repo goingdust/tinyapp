@@ -29,7 +29,7 @@ const urlsForUser = (database, id, username) => {
   return null;
 };
 
-const generateRandomString = function(length=6) {
+const generateRandomString = function(length = 6) {
   let result = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
