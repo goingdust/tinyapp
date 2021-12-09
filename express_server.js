@@ -3,13 +3,16 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
-const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
 
-app.use(cookieParser());
+app.set('view engine', 'ejs');
 app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({extended: true}));
-app.set('view engine', 'ejs');
+app.use(cookieSession({
+  name: 'session',
+  keys: ['username']
+}));
 
 const users = {
   'stevie': {
@@ -72,7 +75,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-  const username = req.cookies.username;
+  const username = req.session.username;
   
   if (username) {
     return res.redirect('/urls');
@@ -100,17 +103,17 @@ app.post('/login', (req, res) => {
     return res.status(403).send('password does not match the password saved');
   } 
     
-  res.cookie('username', user[0].username);
+  req.session.username = user[0].username;
   res.redirect('/urls');
 });
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('username');
+  delete req.session.username;
   res.redirect('/urls');
 });
 
 app.get('/register', (req, res) => {
-  const username = req.cookies['username'];
+  const username = req.session.username;
   
   if (username) {
     return res.redirect('/urls');
@@ -147,12 +150,12 @@ app.post('/register', (req, res) => {
     urls: {}
   };
 
-  res.cookie('username', users[username].username);
+  req.session.username = users[username].username;
   res.redirect('/urls');
 });
 
 app.get('/urls', (req, res) => {
-  const username = req.cookies.username;
+  const username = req.session.username;
   
   console.log('users', users);
   const templateVars = {
@@ -162,7 +165,7 @@ app.get('/urls', (req, res) => {
 });
 
 app.post('/urls', (req, res) => {
-  const username = req.cookies.username;
+  const username = req.session.username;
 
   if (!username) {
     return res.status(401).send('not logged in');
@@ -180,7 +183,7 @@ app.post('/urls', (req, res) => {
 });
 
 app.get('/urls/new', (req, res) => {
-  const username = req.cookies.username;
+  const username = req.session.username;
   
   if (!username) {
     return res.redirect('/login');
@@ -193,7 +196,7 @@ app.get('/urls/new', (req, res) => {
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  const username = req.cookies.username;
+  const username = req.session.username;
   const shortURL = req.params.shortURL;
 
   if (!username || !shortURL || !urlsForUser(shortURL, username)) {
@@ -221,7 +224,7 @@ app.get('/u/:shortURL', (req, res) => {
 });
 
 app.post('/urls/:shortURL', (req, res) => {
-  const username = req.cookies.username;
+  const username = req.session.username;
 
   if (!username) {
     return res.status(401).send('unauthorized');
@@ -237,7 +240,7 @@ app.post('/urls/:shortURL', (req, res) => {
 });
 
 app.post('/urls/:shortURL/delete', (req, res) => {
-  const username = req.cookies.username;
+  const username = req.session.username;
   
   if (!username) {
     return res.status(401).send('unauthorized');
