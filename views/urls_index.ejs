@@ -31,7 +31,7 @@
         <tbody>
           <% for (let url in username.urls) { %>
             <tr>
-              <td><%= url %></td><br>
+              <td><a href="/u/<%= url %>"><%= url %></a></td><br>
               <td><%= username.urls[url].longURL %></td>
               <td><%= username.urls[url].dateCreated %></td>
               <td><%= username.urls[url].visits %></td>

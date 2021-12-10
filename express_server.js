@@ -243,7 +243,7 @@ app.get('/u/:shortURL', (req, res) => {
     // grab longURL from url and redirect there
     const longURL = url.longURL;
     return res.redirect(longURL);
-  }    
+  }
 
   // else send error page
   return res.status(404).send('page not found');
