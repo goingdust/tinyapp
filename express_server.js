@@ -24,7 +24,10 @@ const users = {
       'b2xVn2' : {
         longURL: 'http://www.lighthouselabs.ca',
         username: 'b2xVn2',
-        dateCreated: 'Thu, 09 Dec 2021 21:33:53 GMT'
+        dateCreated: 'Thu, 09 Dec 2021 21:33:53 GMT',
+        visits: 0,
+        uniqueVisits: 0,
+        addresses: []
       }
     }
   },
@@ -36,7 +39,10 @@ const users = {
       '9sm5xK': {
         longURL: 'http://www.google.com',
         username: '9sm5xK',
-        dateCreated: 'Thu, 09 Dec 2021 21:34:02 GMT'
+        dateCreated: 'Thu, 09 Dec 2021 21:34:02 GMT',
+        visits: 0,
+        uniqueVisits: 0,
+        addresses: []
       }
     }
   }
@@ -172,7 +178,10 @@ app.post('/urls', (req, res) => {
   users[username].urls[shortURL] = {
     longURL,
     username: shortURL,
-    dateCreated
+    dateCreated,
+    visits: 0,
+    uniqueVisits: 0,
+    addresses: []
   };
 
   res.redirect(`/urls/${shortURL}`);
@@ -211,17 +220,30 @@ app.get('/urls/:shortURL', (req, res) => {
 
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
+  const ip = req._remoteAddress;
   
   // if the shortURL exists in database
   if (urlsForUser(users, shortURL)) {
     
-    // grab user from the first index of returned array
+    // grab user from the first index of returned array, then grab url
     const user = urlsForUser(users, shortURL)[0];
-    
-    // get longURL with user key and redirect there
-    const longURL = users[user].urls[shortURL].longURL;
+    const url = users[user].urls[shortURL];
+
+    // add 1 visit to url's # of visits
+    url.visits += 1;
+
+    // check if the ip exists in database
+    if (!url.addresses.find(x => x === ip)) {
+      
+      // if not, add 1 visit to url's # of unique visits and push ip to addresses
+      url.uniqueVisits += 1;
+      url.addresses.push(ip);
+    }
+
+    // grab longURL from url and redirect there
+    const longURL = url.longURL;
     return res.redirect(longURL);
-  }
+  }    
 
   // else send error page
   return res.status(404).send('page not found');
