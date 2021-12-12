@@ -251,45 +251,39 @@ app.get('/u/:shortURL', (req, res) => {
 
 app.post('/urls/:shortURL', (req, res) => {
   const username = req.session.username;
+  const shortURL = Object.keys(req.body)[0];
 
   // if not logged in, send error page
   if (!username) {
     return res.status(401).send('unauthorized');
   }
-
-  // grab the shortURL as key
-  for (const key in req.body) {
     
-    // if logged in user does not have this shortURL, send error page
-    if (!urlsForUser(users, key, username)) {
-      return res.status(401).send('unauthorized');
-    }
-
-    // else update the longURL and refresh page
-    users[username].urls[key].longURL = req.body[key];
-    res.redirect(`/urls/${key}`);
+  // if logged in user does not have this shortURL, send error page
+  if (!urlsForUser(users, shortURL, username)) {
+    return res.status(401).send('unauthorized');
   }
+
+  // else update the longURL and refresh page
+  users[username].urls[shortURL].longURL = req.body[shortURL];
+  res.redirect(`/urls/${shortURL}`);
 });
 
 app.post('/urls/:shortURL/delete', (req, res) => {
   const username = req.session.username;
+  const shortURL = Object.keys(req.body)[0];
   
   // if not logged in, send error page
   if (!username) {
     return res.status(401).send('unauthorized');
   }
 
-  // grab the shortURL as key
-  for (const key in req.body) {
-
-    // if logged in user does not have this shortURL, send error page
-    if (!urlsForUser(users, key, username)) {
-      return res.status(401).send('unauthorized');
-    }
-
-    // else delete the url
-    delete users[username].urls[key];
+  // if logged in user does not have this shortURL, send error page
+  if (!urlsForUser(users, shortURL, username)) {
+    return res.status(401).send('unauthorized');
   }
+  
+  // else delete the url
+  delete users[username].urls[shortURL];
 
   res.redirect('/urls');
 });
